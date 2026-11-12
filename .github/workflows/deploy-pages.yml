@@ -18,7 +18,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 22
+      - name: Check required files are committed
+        run: |
+          for f in package.json scripts/build.mjs tests/site.test.js tests/build.test.js js/config.js js/main.js backend/Code.gs _headers; do
+            test -f "$f" || { echo "::error::Missing $f in the repo. Run: git add $f && git commit && git push"; exit 1; }
+          done
       - run: npm test
       - name: Build (public settings come from repository Variables)
         run: npm run build
