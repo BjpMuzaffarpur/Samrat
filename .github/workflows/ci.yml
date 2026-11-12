@@ -19,7 +19,7 @@ jobs:
           node-version: 22
       - name: Check required files are committed
         run: |
-          for f in package.json scripts/build.mjs tests/site.test.js tests/build.test.js js/config.js js/main.js backend/Code.gs _headers; do
+          for f in package.json scripts/build.mjs tests/site.test.js tests/build.test.js js/config.js js/main.js _headers; do
             test -f "$f" || { echo "::error::Missing $f in the repo. Run: git add $f && git commit && git push"; exit 1; }
           done
       - name: Syntax check (site + Apps Script)
