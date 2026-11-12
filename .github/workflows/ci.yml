@@ -1,0 +1,32 @@
+name: CI
+on:
+  pull_request:
+  push:
+    branches-ignore: [main]
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check required files are committed
+        run: |
+          for f in package.json scripts/build.mjs tests/site.test.js tests/build.test.js js/config.js js/main.js backend/Code.gs _headers; do
+            test -f "$f" || { echo "::error::Missing $f in the repo. Run: git add $f && git commit && git push"; exit 1; }
+          done
+      - name: Syntax check (site + Apps Script)
+        run: |
+          find js scripts -name '*.js' -not -path 'js/vendor/*' -o -name '*.mjs' | xargs -n1 node --check
+          cp backend/Code.gs /tmp/code.js && node --check /tmp/code.js
+      - name: Tests (security, content, CSP hygiene, build)
+        run: npm test
+      - name: Build
+        run: npm run build
